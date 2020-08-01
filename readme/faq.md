@@ -1,3 +1,17 @@
+# Installer gets stuck on Windows
+
+The installer may get stuck if the app was not uninstalled correctly. To fix the issue you will need to clean up the left-over entry from the Registry. To do so please follow these steps:
+
+- Press Win + R (Windows Key + R)
+- Type "regedit.exe"
+- Navigate to `HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall`
+- In there, you will see one or more folders. Open them one by one to find the one for Joplin. One of the entries in there should be "DisplayName" with value "Joplin x.x.x".
+- Once found, delete that folder.
+
+Now try to install again and it should work.
+
+More info there: https://github.com/electron-userland/electron-builder/issues/4057
+
 # How can I edit my note in an external text editor?
 
 The editor command (may include arguments) defines which editor will be used to open a note. If none is provided it will try to auto-detect the default editor. If this does nothing or you want to change it for Joplin, you need to configure it in the Preferences -> Text editor command.
@@ -7,21 +21,21 @@ Some example configurations are: (comments after #)
 Linux/Mac:
 
 ```bash
-subl -n       # Opens Sublime (subl) in a new window (-n)
-code -n       # Opens Visual Studio Code (code) in a new window (-n)
+subl -n -w      # Opens Sublime (subl) in a new window (-n) and waits for close (-w)
+code -n --wait  # Opens Visual Studio Code (code) in a new window (-n) and waits for close (--wait)
 gedit --new-window    # Opens gedit (Gnome Text Editor) in a new window
-xterm -e vim  # Opens a new terminal and opens vim. Can be replaced with an
-              # alternative terminal (gnome-terminal, terminator, etc.) 
-              # or terminal text-editor (emacs, nano, etc.)
+xterm -e vim    # Opens a new terminal and opens vim. Can be replaced with an
+                # alternative terminal (gnome-terminal, terminator, etc.) 
+                # or terminal text-editor (emacs, nano, etc.)
 open -a <application> # Mac only: opens a GUI application
 ```
 
 Windows:
 
 ```bash
-subl.exe -n   # Opens Sublime (subl) in a new window (-n)
-code.exe -n   # Opens Visual Studio Code in a new window (-n)
-notepad.exe   # Opens Notepad in a new window
+subl.exe -n -w      # Opens Sublime (subl) in a new window (-n) and waits for close (-w)
+code.exe -n --wait  # Opens Visual Studio Code in a new window (-n) and waits for close (--wait)
+notepad.exe         # Opens Notepad in a new window
 notepad++.exe --openSession   # Opens Notepad ++ in new window
 ```
 

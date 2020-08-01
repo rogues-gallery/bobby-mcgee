@@ -1,6 +1,6 @@
 const React = require('react');
 const { connect } = require('react-redux');
-const { themeStyle } = require('../theme.js');
+const { themeStyle } = require('lib/theme');
 const { _ } = require('lib/locale.js');
 
 class NoteSearchBarComponent extends React.Component {
@@ -52,7 +52,7 @@ class NoteSearchBarComponent extends React.Component {
 			opacity: isEnabled ? 1.0 : theme.disabledOpacity,
 		};
 
-		const icon = <i style={iconStyle} className={`fa ${iconName}`}></i>;
+		const icon = <i style={iconStyle} className={`fas ${iconName}`}></i>;
 
 		return (
 			<a href="#" style={searchButton} onClick={clickHandler}>

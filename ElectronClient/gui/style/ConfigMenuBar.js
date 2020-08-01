@@ -1,5 +1,5 @@
 const { createSelector } = require('reselect');
-const { themeStyle } = require('../../theme.js');
+const { themeStyle } = require('lib/theme');
 
 const themeSelector = (state, props) => themeStyle(props.theme);
 
@@ -20,7 +20,7 @@ const style = createSelector(
 			},
 			buttonIcon: {
 				fontSize: 24,
-				color: theme.colorFaded,
+				color: theme.iconColor,
 			},
 			buttonLabel: {
 				display: 'flex',

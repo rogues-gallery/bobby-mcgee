@@ -166,6 +166,14 @@ class MdToHtml {
 		return output;
 	}
 
+	removeMarkdownItWrappingParagraph_(html) {
+		// <p></p>\n
+		if (html.length < 8) return html;
+		if (html.substr(0, 3) !== '<p>') return html;
+		if (html.slice(-5) !== '</p>\n') return html;
+		return html.substring(3, html.length - 5);
+	}
+
 	// "style" here is really the theme, as returned by themeStyle()
 	async render(body, theme = null, options = null) {
 		options = Object.assign({}, {
@@ -178,8 +186,6 @@ class MdToHtml {
 			// files. Otherwise some of them might be in the cssStrings property.
 			externalAssetsOnly: false,
 			postMessageSyntax: 'postMessage',
-			// paddingTop: '0',
-			// paddingBottom: '0',
 			highlightedKeywords: [],
 			codeTheme: 'atom-one-light.css',
 			theme: Object.assign({}, defaultNoteStyle, theme),
@@ -221,7 +227,7 @@ class MdToHtml {
 				// The strings includes the last \n that is part of the fence,
 				// so we remove it because we need the exact code in the source block
 				const trimmedStr = str.replace(/(.*)\n$/, '$1');
-				const sourceBlockHtml = `<pre class="joplin-source" data-joplin-source-open="\`\`\`${lang}&#10;" data-joplin-source-close="&#10;\`\`\`">${markdownIt.utils.escapeHtml(trimmedStr)}</pre>`;
+				const sourceBlockHtml = `<pre class="joplin-source" data-joplin-language="${lang}" data-joplin-source-open="\`\`\`${lang}&#10;" data-joplin-source-close="&#10;\`\`\`">${markdownIt.utils.escapeHtml(trimmedStr)}</pre>`;
 
 				try {
 					let hlCode = '';
@@ -307,7 +313,12 @@ class MdToHtml {
 		if (options.userCss) cssStrings.push(options.userCss);
 
 		if (options.bodyOnly) {
-			output.html = renderedBody;
+			// Markdown-it wraps any content in <p></p> by default. There's a function to parse without
+			// adding these tags (https://github.com/markdown-it/markdown-it/issues/540#issuecomment-471123983)
+			// however when using it, it seems the loaded plugins are not used. In my tests, just changing
+			// render() to renderInline() means the checkboxes would not longer be rendered. So instead
+			// of using this function, we manually remove the <p></p> tags.
+			output.html = this.removeMarkdownItWrappingParagraph_(renderedBody);
 			output.cssStrings = cssStrings;
 		} else {
 			const styleHtml = `<style>${cssStrings.join('\n')}</style>`;

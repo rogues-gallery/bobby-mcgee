@@ -15,12 +15,13 @@ const defaultMarkdownButton = ({ item, getState, setState, color }) => {
 	);
 };
 
+// eslint-disable-next-line import/prefer-default-export
 export const renderFormatButtons = ({ getState, setState, color }, formats, markdownButton) => {
 	const list = (
 		<FlatList
 			data={formats ? formats : Formats}
 			keyboardShouldPersistTaps="always"
-			// eslint-disable-next-line no-unused-vars
+			// eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
 			renderItem={({ item, index }) =>
 				markdownButton
 					? markdownButton({ item, getState, setState })

@@ -1,6 +1,6 @@
 const React = require('react');
 const { _ } = require('lib/locale.js');
-const { themeStyle } = require('../theme.js');
+const { themeStyle } = require('lib/theme');
 const { time } = require('lib/time-utils.js');
 const Datetime = require('react-datetime');
 const CreatableSelect = require('react-select/lib/Creatable').default;
@@ -233,7 +233,7 @@ class PromptDialog extends React.Component {
 		const buttonComps = [];
 		if (buttonTypes.indexOf('ok') >= 0) {
 			buttonComps.push(
-				<button key="ok" style={styles.button} onClick={() => onClose(true, 'ok')}>
+				<button key="ok" disabled={!this.state.answer} style={styles.button} onClick={() => onClose(true, 'ok')}>
 					{_('OK')}
 				</button>
 			);

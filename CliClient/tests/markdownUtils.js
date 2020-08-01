@@ -51,6 +51,21 @@ describe('markdownUtils', function() {
 		}
 	}));
 
+	it('escape a markdown link', asyncTest(async () => {
+
+		const testCases = [
+			['file:///Users/who put spaces in their username??/.config/joplin', 'file:///Users/who%20put%20spaces%20in%20their%20username??/.config/joplin'],
+			['file:///Users/(and brackets???)/.config/joplin', 'file:///Users/%28and%20brackets???%29/.config/joplin'],
+			['file:///Users/thisisfine/.config/joplin', 'file:///Users/thisisfine/.config/joplin'],
+		];
+
+		for (let i = 0; i < testCases.length; i++) {
+			const md = testCases[i][0];
+			const expected = testCases[i][1];
+			expect(markdownUtils.escapeLinkUrl(md)).toBe(expected);
+		}
+	}));
+
 	it('escape a markdown link (title)', asyncTest(async () => {
 
 		const testCases = [
@@ -63,6 +78,25 @@ describe('markdownUtils', function() {
 			const md = testCases[i][0];
 			const expected = testCases[i][1];
 			expect(markdownUtils.escapeTitleText(md)).toBe(expected);
+		}
+	}));
+
+	it('replace markdown link with description', asyncTest(async () => {
+
+		const testCases = [
+			['Test case [one](link)', 'Test case one'],
+			['Test case ![two](imagelink)', 'Test case two'],
+			['**# -Test case three', 'Test case three'],
+			['This is a looooooong tiiitlllle with moore thaaaaaaan eighty characters and a [link](linkurl) at the end', 'This is a looooooong tiiitlllle with moore thaaaaaaan eighty characters and a li'],
+			['', ''],
+			['These are [link1](one), [link2](two) and ![link3](three)', 'These are link1, link2 and link3'],
+			['No description link to [](https://joplinapp.org)', 'No description link to https://joplinapp.org'],
+		];
+
+		for (let i = 0; i < testCases.length; i++) {
+			const md = testCases[i][0];
+			const expected = testCases[i][1];
+			expect(markdownUtils.titleFromBody(md)).toBe(expected);
 		}
 	}));
 

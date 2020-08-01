@@ -1,5 +1,6 @@
 const Setting = require('lib/models/Setting');
 const Tag = require('lib/models/Tag');
+const BaseModel = require('lib/BaseModel');
 const Note = require('lib/models/Note');
 const { reg } = require('lib/registry.js');
 const ResourceFetcher = require('lib/services/ResourceFetcher');
@@ -18,8 +19,14 @@ const reduxSharedMiddleware = async function(store, next, action) {
 		reg.resetSyncTarget();
 	}
 
+	let mustAutoAddResources = false;
+
 	if (action.type === 'SETTING_UPDATE_ONE' && action.key === 'sync.resourceDownloadMode') {
-		ResourceFetcher.instance().autoAddResources();
+		mustAutoAddResources = true;
+	}
+
+	if (action.type === 'DECRYPTION_WORKER_SET' && action.state === 'idle' && action.decryptedItemCounts && !!action.decryptedItemCounts[BaseModel.TYPE_NOTE]) {
+		mustAutoAddResources = true;
 	}
 
 	// In general the DecryptionWorker is started via events, such as when an encrypted note
@@ -70,12 +77,27 @@ const reduxSharedMiddleware = async function(store, next, action) {
 		});
 	}
 
+	if (mustAutoAddResources) {
+		ResourceFetcher.instance().autoAddResources();
+	}
 
 	if (refreshTags) {
 		store.dispatch({
 			type: 'TAG_UPDATE_ALL',
 			items: await Tag.allWithNotes(),
 		});
+	}
+
+	// For debugging purposes: it seems in some case an empty note is saved to
+	// the note array, so in that case display a log statements so that it can
+	// be debugged.
+	// https://discourse.joplinapp.org/t/how-to-recover-corrupted-database/9367/3?u=laurent
+	if (action.type.indexOf('NOTE_') === 0) {
+		for (const note of newState.notes) {
+			if (!note) {
+				reg.logger().error('Detected empty element in note array', action);
+			}
+		}
 	}
 };
 

@@ -1,6 +1,6 @@
 const React = require('react');
 const { _ } = require('lib/locale.js');
-const { themeStyle } = require('../theme.js');
+const { themeStyle } = require('lib/theme');
 const { time } = require('lib/time-utils.js');
 const DialogButtonRow = require('./DialogButtonRow.min');
 const Datetime = require('react-datetime');
@@ -295,8 +295,9 @@ class NotePropertiesDialog extends React.Component {
 					const ll = this.latLongFromLocation(value);
 					url = Note.geoLocationUrlFromLatLong(ll.latitude, ll.longitude);
 				}
+				const urlStyle = Object.assign({}, theme.urlStyle, { maxWidth: '180px', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' });
 				controlComp = (
-					<a href="#" onClick={() => bridge().openExternal(url)} style={theme.urlStyle}>
+					<a href="#" onClick={() => bridge().openExternal(url)} style={urlStyle}>
 						{displayedValue}
 					</a>
 				);
@@ -321,7 +322,7 @@ class NotePropertiesDialog extends React.Component {
 		if (editCompHandler) {
 			editComp = (
 				<a href="#" onClick={editCompHandler} style={styles.editPropertyButton}>
-					<i className={`fa ${editCompIcon}`} aria-hidden="true"></i>
+					<i className={`fas ${editCompIcon}`} aria-hidden="true"></i>
 				</a>
 			);
 		}

@@ -1,18 +1,20 @@
 const React = require('react');
 const { connect } = require('react-redux');
-const { themeStyle } = require('../theme.js');
+const { themeStyle } = require('lib/theme');
 const ToolbarButton = require('./ToolbarButton.min.js');
 const ToolbarSpace = require('./ToolbarSpace.min.js');
 
 class ToolbarComponent extends React.Component {
 	render() {
-		const style = this.props.style;
 		const theme = themeStyle(this.props.theme);
-		style.height = theme.toolbarHeight;
-		style.display = 'flex';
-		style.flexDirection = 'row';
-		style.borderBottom = `1px solid ${theme.dividerColor}`;
-		style.boxSizing = 'border-box';
+
+		const style = Object.assign({
+			// height: theme.toolbarHeight,
+			display: 'flex',
+			flexDirection: 'row',
+			borderBottom: `1px solid ${theme.dividerColor}`,
+			boxSizing: 'border-box',
+		}, this.props.style);
 
 		const itemComps = [];
 
@@ -32,6 +34,8 @@ class ToolbarComponent extends React.Component {
 					},
 					o
 				);
+
+				if (this.props.disabled) props.disabled = true;
 
 				if (itemType === 'button') {
 					itemComps.push(<ToolbarButton {...props} />);

@@ -29,11 +29,21 @@ class BaseItem extends BaseModel {
 		throw new Error(`Invalid class name: ${className}`);
 	}
 
-	static async findUniqueItemTitle(title) {
+	static async findUniqueItemTitle(title, parentId = null) {
 		let counter = 1;
 		let titleToTry = title;
 		while (true) {
-			const item = await this.loadByField('title', titleToTry);
+			let item = null;
+
+			if (parentId !== null) {
+				item = await this.loadByFields({
+					title: titleToTry,
+					parent_id: parentId,
+				});
+			} else {
+				item = await this.loadByField('title', titleToTry);
+			}
+
 			if (!item) return titleToTry;
 			titleToTry = `${title} (${counter})`;
 			counter++;
@@ -257,6 +267,9 @@ class BaseItem extends BaseModel {
 		if (['title_diff', 'body_diff'].indexOf(propName) >= 0) {
 			if (!propValue) return '';
 			propValue = JSON.parse(propValue);
+		} else if (['longitude', 'latitude', 'altitude'].indexOf(propName) >= 0) {
+			const places = (propName === 'altitude') ? 4 : 8;
+			propValue = Number(propValue).toFixed(places);
 		} else {
 			if (['created_time', 'updated_time', 'user_created_time', 'user_updated_time'].indexOf(propName) >= 0) {
 				propValue = (!propValue) ? '0' : moment(propValue, 'YYYY-MM-DDTHH:mm:ss.SSSZ').format('x');
@@ -782,6 +795,12 @@ class BaseItem extends BaseModel {
 		output.push(`(:/${item.id})`);
 		return output.join('');
 	}
+
+	static isMarkdownTag(md) {
+		if (!md) return false;
+		return !!md.match(/^\[.*?\]\(:\/[0-9a-zA-Z]{32}\)$/);
+	}
+
 }
 
 BaseItem.encryptionService_ = null;

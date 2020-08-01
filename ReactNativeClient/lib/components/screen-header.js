@@ -39,7 +39,7 @@ class ScreenHeaderComponent extends React.PureComponent {
 		const styleObject = {
 			container: {
 				flexDirection: 'column',
-				backgroundColor: theme.raisedBackgroundColor,
+				backgroundColor: theme.backgroundColor2,
 				alignItems: 'center',
 				shadowColor: '#000000',
 				elevation: 5,
@@ -52,7 +52,7 @@ class ScreenHeaderComponent extends React.PureComponent {
 			sideMenuButton: {
 				flex: 1,
 				alignItems: 'center',
-				backgroundColor: theme.raisedBackgroundColor,
+				backgroundColor: theme.backgroundColor2,
 				paddingLeft: theme.marginLeft,
 				paddingRight: 5,
 				marginRight: 2,
@@ -61,9 +61,9 @@ class ScreenHeaderComponent extends React.PureComponent {
 			},
 			iconButton: {
 				flex: 1,
-				backgroundColor: theme.raisedBackgroundColor,
-				paddingLeft: 15,
-				paddingRight: 15,
+				backgroundColor: theme.backgroundColor2,
+				paddingLeft: 10,
+				paddingRight: 10,
 				paddingTop: PADDING_V,
 				paddingBottom: PADDING_V,
 			},
@@ -73,18 +73,18 @@ class ScreenHeaderComponent extends React.PureComponent {
 				alignItems: 'center',
 				padding: 10,
 				borderWidth: 1,
-				borderColor: theme.raisedHighlightedColor,
+				borderColor: theme.colorBright2,
 				borderRadius: 4,
 				marginRight: 8,
 			},
 			saveButtonText: {
 				textAlignVertical: 'center',
-				color: theme.raisedHighlightedColor,
+				color: theme.colorBright2,
 				fontWeight: 'bold',
 			},
 			savedButtonIcon: {
 				fontSize: 20,
-				color: theme.raisedHighlightedColor,
+				color: theme.colorBright2,
 				width: 18,
 				height: 18,
 			},
@@ -96,11 +96,11 @@ class ScreenHeaderComponent extends React.PureComponent {
 				fontSize: 30,
 				paddingLeft: 10,
 				paddingRight: theme.marginRight,
-				color: theme.raisedColor,
+				color: theme.color2,
 				fontWeight: 'bold',
 			},
 			contextMenu: {
-				backgroundColor: theme.raisedBackgroundColor,
+				backgroundColor: theme.backgroundColor2,
 			},
 			contextMenuItem: {
 				backgroundColor: theme.backgroundColor,
@@ -120,7 +120,7 @@ class ScreenHeaderComponent extends React.PureComponent {
 				flex: 1,
 				textAlignVertical: 'center',
 				marginLeft: 10,
-				color: theme.raisedHighlightedColor,
+				color: theme.colorBright2,
 				fontWeight: 'bold',
 				fontSize: theme.fontSize,
 				paddingTop: 15,
@@ -136,13 +136,14 @@ class ScreenHeaderComponent extends React.PureComponent {
 		styleObject.topIcon = Object.assign({}, theme.icon);
 		styleObject.topIcon.flex = 1;
 		styleObject.topIcon.textAlignVertical = 'center';
-		styleObject.topIcon.color = theme.raisedColor;
+		styleObject.topIcon.color = theme.colorBright2;
 
 		styleObject.backButton = Object.assign({}, styleObject.iconButton);
 		styleObject.backButton.marginRight = 1;
 
 		styleObject.backButtonDisabled = Object.assign({}, styleObject.backButton, { opacity: theme.disabledOpacity });
 		styleObject.saveButtonDisabled = Object.assign({}, styleObject.saveButton, { opacity: theme.disabledOpacity });
+		styleObject.iconButtonDisabled = Object.assign({}, styleObject.iconButton, { opacity: theme.disabledOpacity });
 
 		this.styles_[themeId] = StyleSheet.create(styleObject);
 		return this.styles_[themeId];
@@ -248,6 +249,36 @@ class ScreenHeaderComponent extends React.PureComponent {
 			);
 		}
 
+		const renderTopButton = (options) => {
+			if (!options.visible) return null;
+
+			const icon = <Icon name={options.iconName} style={this.styles().topIcon} />;
+			const viewStyle = options.disabled ? this.styles().iconButtonDisabled : this.styles().iconButton;
+
+			return (
+				<TouchableOpacity onPress={options.onPress} style={{ padding: 0 }} disabled={!!options.disabled}>
+					<View style={viewStyle}>{icon}</View>
+				</TouchableOpacity>
+			);
+		};
+
+		const renderUndoButton = () => {
+			return renderTopButton({
+				iconName: 'md-undo',
+				onPress: this.props.onUndoButtonPress,
+				visible: this.props.showUndoButton,
+				disabled: this.props.undoButtonDisabled,
+			});
+		};
+
+		const renderRedoButton = () => {
+			return renderTopButton({
+				iconName: 'md-redo',
+				onPress: this.props.onRedoButtonPress,
+				visible: this.props.showRedoButton,
+			});
+		};
+
 		function selectAllButton(styles, onPress) {
 			return (
 				<TouchableOpacity onPress={onPress}>
@@ -268,20 +299,20 @@ class ScreenHeaderComponent extends React.PureComponent {
 			);
 		}
 
-		function deleteButton(styles, onPress) {
+		function deleteButton(styles, onPress, disabled) {
 			return (
-				<TouchableOpacity onPress={onPress}>
-					<View style={styles.iconButton}>
+				<TouchableOpacity onPress={onPress} disabled={disabled}>
+					<View style={disabled ? styles.iconButtonDisabled : styles.iconButton}>
 						<Icon name="md-trash" style={styles.topIcon} />
 					</View>
 				</TouchableOpacity>
 			);
 		}
 
-		function duplicateButton(styles, onPress) {
+		function duplicateButton(styles, onPress, disabled) {
 			return (
-				<TouchableOpacity onPress={onPress}>
-					<View style={styles.iconButton}>
+				<TouchableOpacity onPress={onPress} disabled={disabled}>
+					<View style={disabled ? styles.iconButtonDisabled : styles.iconButton}>
 						<Icon name="md-copy" style={styles.topIcon} />
 					</View>
 				</TouchableOpacity>
@@ -333,7 +364,7 @@ class ScreenHeaderComponent extends React.PureComponent {
 			);
 		}
 
-		const createTitleComponent = () => {
+		const createTitleComponent = (disabled) => {
 			const themeId = Setting.value('theme');
 			const theme = themeStyle(themeId);
 			const folderPickerOptions = this.props.folderPickerOptions;
@@ -368,14 +399,16 @@ class ScreenHeaderComponent extends React.PureComponent {
 					<Dropdown
 						items={titlePickerItems(!!folderPickerOptions.mustSelect)}
 						itemHeight={35}
+						disabled={disabled}
 						labelTransform="trim"
 						selectedValue={'selectedFolderId' in folderPickerOptions ? folderPickerOptions.selectedFolderId : null}
 						itemListStyle={{
 							backgroundColor: theme.backgroundColor,
 						}}
 						headerStyle={{
-							color: theme.raisedHighlightedColor,
+							color: theme.colorBright2,
 							fontSize: theme.fontSize,
+							opacity: disabled ? theme.disabledOpacity : 1,
 						}}
 						itemStyle={{
 							color: theme.color,
@@ -409,7 +442,7 @@ class ScreenHeaderComponent extends React.PureComponent {
 				);
 			} else {
 				const title = 'title' in this.props && this.props.title !== null ? this.props.title : '';
-				return <Text style={this.styles().titleText}>{title}</Text>;
+				return <Text ellipsizeMode={'tail'} numberOfLines={1} style={this.styles().titleText}>{title}</Text>;
 			}
 		};
 
@@ -426,14 +459,15 @@ class ScreenHeaderComponent extends React.PureComponent {
 
 		let backButtonDisabled = !this.props.historyCanGoBack;
 		if (this.props.noteSelectionEnabled) backButtonDisabled = false;
+		const headerItemDisabled = !this.props.selectedNoteIds.length > 0;
 
-		const titleComp = createTitleComponent();
+		const titleComp = createTitleComponent(headerItemDisabled);
 		const sideMenuComp = !showSideMenuButton ? null : sideMenuButton(this.styles(), () => this.sideMenuButton_press());
 		const backButtonComp = !showBackButton ? null : backButton(this.styles(), () => this.backButton_press(), backButtonDisabled);
 		const selectAllButtonComp = !showSelectAllButton ? null : selectAllButton(this.styles(), () => this.selectAllButton_press());
 		const searchButtonComp = !showSearchButton ? null : searchButton(this.styles(), () => this.searchButton_press());
-		const deleteButtonComp = this.props.noteSelectionEnabled ? deleteButton(this.styles(), () => this.deleteButton_press()) : null;
-		const duplicateButtonComp = this.props.noteSelectionEnabled ? duplicateButton(this.styles(), () => this.duplicateButton_press()) : null;
+		const deleteButtonComp = this.props.noteSelectionEnabled ? deleteButton(this.styles(), () => this.deleteButton_press(), headerItemDisabled) : null;
+		const duplicateButtonComp = this.props.noteSelectionEnabled ? duplicateButton(this.styles(), () => this.duplicateButton_press(), headerItemDisabled) : null;
 		const sortButtonComp = !this.props.noteSelectionEnabled && this.props.sortButton_press ? sortButton(this.styles(), () => this.props.sortButton_press()) : null;
 		const windowHeight = Dimensions.get('window').height - 50;
 
@@ -459,6 +493,8 @@ class ScreenHeaderComponent extends React.PureComponent {
 				<View style={{ flexDirection: 'row', alignItems: 'center' }}>
 					{sideMenuComp}
 					{backButtonComp}
+					{renderUndoButton(this.styles())}
+					{renderRedoButton(this.styles())}
 					{saveButton(
 						this.styles(),
 						() => {

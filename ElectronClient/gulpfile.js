@@ -11,11 +11,15 @@ const tasks = {
 	copyPluginAssets: {
 		fn: require('./tools/copyPluginAssets.js'),
 	},
+	copyTinyMceLangs: {
+		fn: require('./tools/copyTinyMceLangs.js'),
+	},
 	electronRebuild: {
 		fn: require('./tools/electronRebuild.js'),
 	},
 	copyLib: require('../Tools/gulp/tasks/copyLib'),
 	tsc: require('../Tools/gulp/tasks/tsc'),
+	updateIgnoredTypeScriptBuild: require('../Tools/gulp/tasks/updateIgnoredTypeScriptBuild'),
 };
 
 utils.registerGulpTasks(gulp, tasks);
@@ -28,7 +32,7 @@ const buildSeries = [
 // which makes the copyPluginAssets command fail. For that reason,
 // it's not possible to run watch on Windows while testing the desktop app.
 if (require('os').platform() === 'win32') {
-	buildSeries.push('tsc');
+	// buildSeries.push('tsc');
 }
 
 const buildParallel = [
@@ -36,6 +40,8 @@ const buildParallel = [
 	'compileScripts',
 	'compilePackageInfo',
 	'copyPluginAssets',
+	'copyTinyMceLangs',
+	'updateIgnoredTypeScriptBuild',
 ];
 
 gulp.task('build', gulp.parallel(...buildParallel));

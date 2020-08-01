@@ -3,15 +3,17 @@ const { _ } = require('lib/locale.js');
 const { bridge } = require('electron').remote.require('./bridge');
 const Menu = bridge().Menu;
 const MenuItem = bridge().MenuItem;
-const eventManager = require('../../eventManager');
+const eventManager = require('lib/eventManager');
 const InteropService = require('lib/services/InteropService');
 const InteropServiceHelper = require('../../InteropServiceHelper.js');
 const Note = require('lib/models/Note');
-const ExternalEditWatcher = require('lib/services/ExternalEditWatcher');
+const CommandService = require('lib/services/CommandService').default;
 const { substrWithEllipsis } = require('lib/string-utils');
 
 class NoteListUtils {
 	static makeContextMenu(noteIds, props) {
+		const cmdService = CommandService.instance();
+
 		const notes = noteIds.map(id => BaseModel.byId(props.notes, id));
 
 		let hasEncrypted = false;
@@ -23,29 +25,11 @@ class NoteListUtils {
 
 		if (!hasEncrypted) {
 			menu.append(
-				new MenuItem({
-					label: _('Add or remove tags'),
-					click: async () => {
-						props.dispatch({
-							type: 'WINDOW_COMMAND',
-							name: 'setTags',
-							noteIds: noteIds,
-						});
-					},
-				})
+				new MenuItem(cmdService.commandToMenuItem('setTags'))
 			);
 
 			menu.append(
-				new MenuItem({
-					label: _('Move to notebook'),
-					click: () => {
-						props.dispatch({
-							type: 'WINDOW_COMMAND',
-							name: 'moveToFolder',
-							noteIds: noteIds,
-						});
-					},
-				})
+				new MenuItem(cmdService.commandToMenuItem('moveToFolder'))
 			);
 
 			menu.append(
@@ -64,23 +48,11 @@ class NoteListUtils {
 
 			if (props.watchedNoteFiles.indexOf(noteIds[0]) < 0) {
 				menu.append(
-					new MenuItem({
-						label: _('Edit in external editor'),
-						enabled: noteIds.length === 1,
-						click: async () => {
-							this.startExternalEditing(noteIds[0]);
-						},
-					})
+					new MenuItem(cmdService.commandToMenuItem('startExternalEditing', null, { noteId: noteIds[0] }))
 				);
 			} else {
 				menu.append(
-					new MenuItem({
-						label: _('Stop external editing'),
-						enabled: noteIds.length === 1,
-						click: async () => {
-							this.stopExternalEditing(noteIds[0]);
-						},
-					})
+					new MenuItem(cmdService.commandToMenuItem('stopExternalEditing', null, { noteId: noteIds[0] }))
 				);
 			}
 
@@ -91,8 +63,14 @@ class NoteListUtils {
 						click: async () => {
 							for (let i = 0; i < noteIds.length; i++) {
 								const note = await Note.load(noteIds[i]);
-								await Note.save(Note.toggleIsTodo(note), { userSideValidation: true });
-								eventManager.emit('noteTypeToggle', { noteId: note.id });
+								const newNote = await Note.save(Note.toggleIsTodo(note), { userSideValidation: true });
+								const eventNote = {
+									id: newNote.id,
+									is_todo: newNote.is_todo,
+									todo_due: newNote.todo_due,
+									todo_completed: newNote.todo_completed,
+								};
+								eventManager.emit('noteTypeToggle', { noteId: note.id, note: eventNote });
 							}
 						},
 					})
@@ -143,17 +121,9 @@ class NoteListUtils {
 			);
 
 			menu.append(
-				new MenuItem({
-					label: _('Share note...'),
-					click: async () => {
-						console.info('NOTE IDS', noteIds);
-						props.dispatch({
-							type: 'WINDOW_COMMAND',
-							name: 'commandShareNoteDialog',
-							noteIds: noteIds.slice(),
-						});
-					},
-				})
+				new MenuItem(
+					cmdService.commandToMenuItem('showShareNoteDialog', null, { noteIds: noteIds.slice() })
+				)
 			);
 
 			const exportMenu = new Menu();
@@ -176,16 +146,9 @@ class NoteListUtils {
 			}
 
 			exportMenu.append(
-				new MenuItem({
-					label: `PDF - ${_('PDF File')}`,
-					click: () => {
-						props.dispatch({
-							type: 'WINDOW_COMMAND',
-							name: 'exportPdf',
-							noteIds: noteIds,
-						});
-					},
-				})
+				new MenuItem(
+					cmdService.commandToMenuItem('exportPdf', null, { noteIds: noteIds })
+				)
 			);
 
 			const exportMenuItem = new MenuItem({ label: _('Export'), submenu: exportMenu });
@@ -224,19 +187,6 @@ class NoteListUtils {
 
 		if (!ok) return;
 		await Note.batchDelete(noteIds);
-	}
-
-	static async startExternalEditing(noteId) {
-		try {
-			const note = await Note.load(noteId);
-			ExternalEditWatcher.instance().openAndWatch(note);
-		} catch (error) {
-			bridge().showErrorMessageBox(_('Error opening note in editor: %s', error.message));
-		}
-	}
-
-	static async stopExternalEditing(noteId) {
-		ExternalEditWatcher.instance().stopWatching(noteId);
 	}
 
 }

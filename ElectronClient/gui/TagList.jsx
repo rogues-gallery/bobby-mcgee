@@ -1,6 +1,6 @@
 const React = require('react');
 const { connect } = require('react-redux');
-const { themeStyle } = require('../theme.js');
+const { themeStyle } = require('lib/theme');
 const TagItem = require('./TagItem.min.js');
 
 class TagListComponent extends React.Component {
@@ -11,10 +11,11 @@ class TagListComponent extends React.Component {
 
 		style.display = 'flex';
 		style.flexDirection = 'row';
-		style.borderBottom = `1px solid ${theme.dividerColor}`;
+		// style.borderBottom = `1px solid ${theme.dividerColor}`;
 		style.boxSizing = 'border-box';
 		style.fontSize = theme.fontSize;
 		style.whiteSpace = 'nowrap';
+		style.height = 25;
 
 		const tagItems = [];
 		if (tags && tags.length > 0) {

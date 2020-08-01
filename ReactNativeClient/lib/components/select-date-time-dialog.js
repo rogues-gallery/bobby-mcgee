@@ -22,7 +22,7 @@ class SelectDateTimeDialog extends React.PureComponent {
 			this.setState({ date: newProps.date });
 		}
 
-		if ('shown' in newProps) {
+		if ('shown' in newProps && newProps.shown != this.shown_) {
 			this.show(newProps.shown);
 		}
 	}
@@ -105,4 +105,5 @@ class SelectDateTimeDialog extends React.PureComponent {
 
 }
 
+// eslint-disable-next-line import/prefer-default-export
 export { SelectDateTimeDialog };

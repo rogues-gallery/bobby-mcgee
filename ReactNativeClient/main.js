@@ -18,6 +18,14 @@ YellowBox.ignoreWarnings([
 ]);
 const { Root } = require('./root.js');
 
+// Disable buggy Fast Refresh
+// NOTE: not working - can make the app go into an infinite crash/restart loop
+// if (__DEV__) {
+// 	const { DevSettings } = NativeModules;
+// 	DevSettings.setHotLoadingEnabled(false);
+// 	DevSettings.setLiveReloadEnabled(false);
+// }
+
 function main() {
 	AppRegistry.registerComponent('Joplin', () => Root);
 	console.ignoredYellowBox = ['Remote debugger'];

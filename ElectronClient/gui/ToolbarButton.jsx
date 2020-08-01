@@ -1,5 +1,5 @@
 const React = require('react');
-const { themeStyle } = require('../theme.js');
+const { themeStyle } = require('lib/theme');
 
 class ToolbarButton extends React.Component {
 	render() {
@@ -14,13 +14,16 @@ class ToolbarButton extends React.Component {
 		if (this.props.iconName) {
 			const iconStyle = {
 				fontSize: Math.round(theme.fontSize * 1.5),
-				color: theme.color,
+				color: theme.iconColor,
 			};
 			if (title) iconStyle.marginRight = 5;
-			icon = <i style={iconStyle} className={`fa ${this.props.iconName}`}></i>;
+			icon = <i style={iconStyle} className={`fas ${this.props.iconName}`}></i>;
 		}
 
-		const isEnabled = !('enabled' in this.props) || this.props.enabled === true;
+		// Keep this for legacy compatibility but for consistency we should use "disabled" prop
+		let isEnabled = !('enabled' in this.props) || this.props.enabled === true;
+		if (this.props.disabled) isEnabled = false;
+
 		const classes = ['button'];
 		if (!isEnabled) classes.push('disabled');
 
